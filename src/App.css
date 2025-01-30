@@ -1,38 +1,64 @@
-.App {
-  text-align: center;
+/* Quiz */
+
+.quiz-container {
+  background-color: #f8f9fa;
+  border-radius: 10px;
+}
+.quiz-container h2 {
+  font-size: 3rem;
+  font-weight: bold;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.quiz-question {
+  background-color: #ffffff;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.quiz-question h4 {
+  color: #333;
+  font-size: 1.2rem;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+.options {
+  margin-top: 10px;
 }
 
-.App-link {
-  color: #61dafb;
+.form-check {
+  margin-bottom: 10px;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.result-text {
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.correct {
+  color: green;
+}
+
+.incorrect {
+  color: red;
+}
+
+.quiz-container button {
+  margin-top: 20px;
+  padding: 15px 30px;
+  font-size: 1.1rem;
+}
+
+
+/* Landing Page */
+
+.jumbotron{
+    padding: 10rem;
+    background-color: black;
+}
+.navbar{
+    background-color: black;
+}
+
+/* footer */
+
+.footer{
+    background-color: black;
+    color: whitesmoke;
 }
