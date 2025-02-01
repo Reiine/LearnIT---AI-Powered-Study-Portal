@@ -1,7 +1,7 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "server.js",
   "license": "MIT",
   "dependencies": {
     "axios": "^1.7.9",
@@ -9,7 +9,13 @@
     "express": "^4.21.2",
     "multer": "^1.4.5-lts.1",
     "nodemon": "^3.1.9",
+    "pdf-lib": "^1.17.1",
     "pdf-parse": "^1.1.1",
     "server": "file:"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.js",
+    "build": "echo \"Build step goes here\""
   }
 }

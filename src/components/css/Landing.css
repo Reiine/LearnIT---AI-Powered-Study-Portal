@@ -1,0 +1,52 @@
+/* Hero Section */
+.hero-section {
+  background: #100b11;
+  height: 100vh;
+  padding: 20px;
+}
+
+.hero-content {
+  max-width: 800px;
+}
+
+/* Features Section */
+
+.features-section img {
+  transition: transform 0.3s ease;
+}
+
+.features-section img:hover {
+  transform: scale(1.05);
+}
+
+/* General Styling */
+.land-info h2 {
+  color: #283789;
+  font-weight: bold;
+
+}
+
+.details p {
+  color: lightgray;
+  text-align: justify;
+}
+.btn-primary {
+  background-color: #2575fc;
+  border: none;
+}
+
+.btn-primary:hover {
+  background-color: #1a5bbf;
+}
+
+.btn-outline-light:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.get-started-btn{
+    background-color: #475cd3;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 14px;
+    color: white;
+}

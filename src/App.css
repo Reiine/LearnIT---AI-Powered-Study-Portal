@@ -1,4 +1,12 @@
+
+body{
+  background-color: #100b11;
+}
+
+
 /* Quiz */
+
+
 
 .quiz-container {
   background-color: #f8f9fa;
@@ -45,20 +53,89 @@
   font-size: 1.1rem;
 }
 
-
 /* Landing Page */
+.bodycont{
+  height: 100vh;
+}
 
-.jumbotron{
-    padding: 10rem;
-    background-color: black;
+
+.jumbotron {
+  padding: 10rem;
+  background-color: black;
 }
-.navbar{
-    background-color: black;
+.navbar {
+  background-color: #283789;
+  height: 5rem;
 }
+
+/* Login */
+
+.login-cover{
+  height: 100vh;
+  
+}
+.login-box{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+  width: 75rem;
+  padding: 10rem;
+}
+
+/* Login */
+
+/* Uploader */
+
+.uploader-cover{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 5rem;
+  background-color: white;
+  border-radius: 20px;
+  height: 100vh;
+}
+
+.uploader-cover h1{
+  font-weight: bold;
+}
+
+.box{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 5rem;
+  background-color: whitesmoke;
+  border-radius: 20px;
+  
+}
+
+.dragdrop {
+  border: 2px dashed #007bff;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  height: 10rem;
+  width: 30rem;
+}
+
+.genQuizBtn{
+  margin-top: 2rem;
+  height: 3rem;
+  width: 10rem;
+}
+
+/* End uploader */
 
 /* footer */
 
-.footer{
-    background-color: black;
-    color: whitesmoke;
+.footer {
+  background-color: #283789;
+  color: whitesmoke;
+  position: absolute;
+  width: 100%;
 }

@@ -1,59 +1,86 @@
 import React from "react";
-import 'bootstrap/dist/css/bootstrap.min.css';
+import "bootstrap/dist/css/bootstrap.min.css";
+import "./css/Landing.css"; // Custom CSS for additional styling
 
-const LandingPage = () => {
+const Landing = () => {
   return (
     <div className="landing-page-container">
-
-      <div className="jumbotron text-center   text-white">
-        <h1 className="display-4">Welcome to StudyBuddy!</h1>
-        <p className="lead">Your personal learning companion - Take quizzes, upload study materials, and track your progress!</p>
-        <hr className="my-4" />
-        <p>Get started by logging in or signing up to access quizzes and study resources!</p>
-      </div>
-
-      <div className="container py-5">
-        <div className="row">
-          <div className="col-md-6">
-            <h2>What We Do?</h2>
-          </div>
-          <div className="col-md-6">
-            <p>
-              StudyBuddy is an interactive learning platform designed to help students improve their knowledge in various subjects. Teachers can upload study materials, which will be automatically converted into MCQs and notes. Students can take quizzes, upload their own study materials, and track their progress.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="container py-5 bg-light">
-        <div className="row">
-          <div className="col-md-6 order-md-2">
-            <h2>Why Us?</h2>
-          </div>
-          <div className="col-md-6 order-md-1">
-            <p>
-              At StudyBuddy, we believe in a student-centered approach. Our platform offers a personalized learning experience by adapting quizzes and study materials to suit your individual learning style. Whether you're a student looking to improve or a teacher eager to share your knowledge, StudyBuddy is here to assist you on your learning journey.
-            </p>
+      {/* Hero Section */}
+      <div className="hero-section text-center text-white d-flex align-items-center justify-content-center">
+        <div className="hero-content">
+          <h1 className="display-4 font-weight-bold">Welcome to LearnIT!</h1>
+          <p className="lead">
+            Your ultimate learning platform - Collaborate, learn, and grow with
+            teachers and peers.
+          </p>
+          <hr className="my-4 bg-white" />
+          <p>
+            Join now to access quizzes, study materials, and track your
+            progress!
+          </p>
+          <div className="mt-4">
+            <button className="get-started-btn">
+              Get Started
+            </button>
           </div>
         </div>
       </div>
 
-      <div className="container py-5">
-        <div className="row">
-          <div className="col-md-6">
-            <h2>How It Works?</h2>
+      {/* Features Section */}
+      <div className="land-info">
+        <div className="container py-5">
+          <div className="row align-items-center justify-content-center">
+            <div className="col-md-6 d-flex flex-column align-items-start text-md-left text-center">
+              <div className="details">
+                <h2 className="font-weight-bold mb-4">What We Offer</h2>
+                <p className="text-muted text-center ">
+                  LearnIT is a collaborative platform where teachers and
+                  students can interact seamlessly. Teachers can upload notes,
+                  generate quizzes, and monitor student progress. Students can
+                  access study materials, take quizzes, and even create their
+                  own quizzes from uploaded notes.
+                </p>
+              </div>
+            </div>
+            <div className="col-md-6 d-flex justify-content-center">
+              <img
+                width={400}
+                src="https://images.pexels.com/photos/5428830/pexels-photo-5428830.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+                alt="LearnIT Features"
+                className="img-fluid rounded shadow"
+              />
+            </div>
           </div>
-          <div className="col-md-6">
-            <p>
-              Teachers upload study materials such as PDFs, which are then automatically converted into quizzes and notes for students. Students can take quizzes, upload their own study materials for personal use, and track their progress with our detailed performance statistics.
-            </p>
+        </div>
+
+        {/* Why Choose Us Section */}
+        <div className="container py-5 bg-light">
+          <div className="row align-items-center justify-content-center ">
+            <div className="col-md-6 order-md-2 d-flex flex-column align-items-start text-md-left">
+              <div>
+                <h2 className="font-weight-bold mb-4 text-center">Why Choose LearnIT?</h2>
+                <p className="text-muted text-center ">
+                  LearnIT is designed to make learning interactive and engaging.
+                  Our platform adapts to your needs, offering personalized
+                  quizzes and study materials. Whether you're a student aiming
+                  to excel or a teacher looking to inspire, LearnIT is your
+                  perfect partner.
+                </p>
+              </div>
+            </div>
+            <div className="col-md-6 order-md-1 d-flex justify-content-center">
+              <img
+                width={400}
+                src="https://images.pexels.com/photos/209728/pexels-photo-209728.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+                alt="Why Choose LearnIT"
+                className="img-fluid rounded shadow"
+              />
+            </div>
           </div>
         </div>
       </div>
-
-      
     </div>
   );
 };
 
-export default LandingPage;
+export default Landing;

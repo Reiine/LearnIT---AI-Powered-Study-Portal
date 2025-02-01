@@ -1,36 +1,35 @@
 import React, { useState, useEffect } from "react";
-import { db } from "../config/firebase-config"; // Import Firestore instance
-import { collection, addDoc, getDocs } from "firebase/firestore"; // Firestore functions
-import 'bootstrap/dist/css/bootstrap.min.css';
+import { db, auth } from "../config/firebase-config"; // Import Firestore and Auth instance
+import { collection, addDoc, getDocs, doc, setDoc } from "firebase/firestore";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "./css/Register.css"; // Custom CSS for additional styling
+import { Link } from "react-router-dom";
 
 const Register = () => {
-  const [activeTab, setActiveTab] = useState("student"); // Tab state (student or teacher)
+  const [activeTab, setActiveTab] = useState("student");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
     organization: "",
   });
-  const [organizations, setOrganizations] = useState([]); // State to hold fetched organizations
+  const [organizations, setOrganizations] = useState([]);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  // Fetch organizations from Firestore on mount
   useEffect(() => {
     const fetchOrganizations = async () => {
       const orgCollection = collection(db, "organizations");
       const orgSnapshot = await getDocs(orgCollection);
-      const orgList = orgSnapshot.docs.map(doc => doc.data().name);
+      const orgList = orgSnapshot.docs.map((doc) => doc.data().name);
       setOrganizations(orgList);
     };
-
     fetchOrganizations();
   }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleTabSwitch = (tab) => {
@@ -40,27 +39,27 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (activeTab === "student") {
-        // Add student to 'students' collection
-        await addDoc(collection(db, "students"), {
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          organization: formData.organization,
-        });
-      } else {
-        // Add teacher to 'teachers' collection
-        await addDoc(collection(db, "teachers"), {
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          organization: formData.organization,
-        });
+      // Create user in Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
+      const user = userCredential.user;
 
-        // Add the organization to 'organizations' collection if it's not already there
+      // Store user info in Firestore
+      const userType = activeTab === "student" ? "students" : "teachers";
+      await setDoc(doc(db, userType, user.uid), {
+        name: formData.name,
+        email: formData.email,
+        organization: formData.organization,
+      });
+
+      // If teacher, add organization if not exists
+      if (activeTab === "teacher") {
         const orgCollection = collection(db, "organizations");
         const orgSnapshot = await getDocs(orgCollection);
-        const orgNames = orgSnapshot.docs.map(doc => doc.data().name);
+        const orgNames = orgSnapshot.docs.map((doc) => doc.data().name);
 
         if (!orgNames.includes(formData.organization)) {
           await addDoc(orgCollection, { name: formData.organization });
@@ -68,192 +67,174 @@ const Register = () => {
       }
 
       // Clear form after submission
-      setFormData({
-        name: "",
-        email: "",
-        password: "",
-        organization: "",
-      });
+      setFormData({ name: "", email: "", password: "", organization: "" });
       alert("Registration successful!");
     } catch (error) {
-      console.error("Error adding document: ", error);
+      setErrorMessage(error.message.split(":")[1].trim());
+      console.error("Error during registration: ", error);
     }
   };
 
   return (
-    <div className="container py-5">
-      <div className="row">
-        <div className="col-md-6 offset-md-3">
-          <div className="card shadow-lg">
-            <div className="card-body">
-              {/* Tab Navigation */}
-              <ul className="nav nav-tabs" id="registrationTabs" role="tablist">
-                <li className="nav-item" role="presentation">
-                  <a
-                    className={`nav-link ${activeTab === "student" ? "active" : ""}`}
-                    onClick={() => handleTabSwitch("student")}
-                    style={{
-                        color: activeTab === "student" ? "black" : "lightgray",
-                    }}
-                    id="student-tab"
-                    data-bs-toggle="tab"
-                    href="#student"
-                    role="tab"
-                    aria-controls="student"
-                    aria-selected={activeTab === "student"}
-                  >
+    <div className="register-page d-flex align-items-center justify-content-center">
+      <div className="register-container">
+        <div className="card register-card shadow-lg">
+          <div className="card-body p-5">
+            <h2 className="text-center mb-4 font-weight-bold">Join LearnIT</h2>
+            <p className="text-center text-muted mb-4">
+              Create an account to get started.
+            </p>
+            <ul className="nav nav-tabs nav-justified mb-4">
+              <li className="nav-item">
+                <button
+                  className={`nav-link ${
+                    activeTab === "student" ? "active" : ""
+                  }`}
+                  onClick={() => handleTabSwitch("student")}
+                >
+                  Student
+                </button>
+              </li>
+              <li className="nav-item">
+                <button
+                  className={`nav-link ${
+                    activeTab === "teacher" ? "active" : ""
+                  }`}
+                  onClick={() => handleTabSwitch("teacher")}
+                >
+                  Teacher
+                </button>
+              </li>
+            </ul>
+            <div className="tab-content">
+              <div
+                className={`tab-pane fade ${
+                  activeTab === "student" ? "show active" : ""
+                }`}
+              >
+                <form onSubmit={handleSubmit}>
+                  <div className="mb-3">
+                    <input
+                      type="text"
+                      name="name"
+                      placeholder="Full Name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      required
+                      className="form-control"
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <input
+                      type="email"
+                      name="email"
+                      placeholder="Email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      required
+                      className="form-control"
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <input
+                      type="password"
+                      name="password"
+                      placeholder="Password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      required
+                      className="form-control"
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <select
+                      name="organization"
+                      value={formData.organization}
+                      onChange={handleInputChange}
+                      required
+                      className="form-select"
+                    >
+                      <option value="">Select Organization</option>
+                      {organizations.map((org, index) => (
+                        <option key={index} value={org}>
+                          {org}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {errorMessage && (
+                    <div className="alert alert-danger">{errorMessage}</div>
+                  )}
+                  <button type="submit" className="btn btn-primary w-100">
                     Register as Student
-                  </a>
-                </li>
-                <li className="nav-item" role="presentation">
-                  <a
-                    className={`nav-link ${activeTab === "teacher" ? "active" : ""}`}
-                    onClick={() => handleTabSwitch("teacher")}
-                    style={{
-                        color: activeTab === "teacher" ? "black" : "lightgray",
-                    }}
-                    id="teacher-tab"
-                    data-bs-toggle="tab"
-                    href="#teacher"
-                    role="tab"
-                    aria-controls="teacher"
-                    aria-selected={activeTab === "teacher"}
-                  >
+                  </button>
+                </form>
+              </div>
+              <div
+                className={`tab-pane fade ${
+                  activeTab === "teacher" ? "show active" : ""
+                }`}
+              >
+                <form onSubmit={handleSubmit}>
+                  <div className="mb-3">
+                    <input
+                      type="text"
+                      name="name"
+                      placeholder="Full Name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      required
+                      className="form-control"
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <input
+                      type="email"
+                      name="email"
+                      placeholder="Email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      required
+                      className="form-control"
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <input
+                      type="password"
+                      name="password"
+                      placeholder="Password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      required
+                      className="form-control"
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <input
+                      type="text"
+                      name="organization"
+                      placeholder="Organization"
+                      value={formData.organization}
+                      onChange={handleInputChange}
+                      required
+                      className="form-control"
+                    />
+                  </div>
+                  {errorMessage && (
+                    <div className="alert alert-danger">{errorMessage}</div>
+                  )}
+                  <button type="submit" className="btn btn-primary w-100">
                     Register as Teacher
-                  </a>
-                </li>
-              </ul>
-
-              <div className="tab-content mt-3">
-                {/* Student Registration Form */}
-                <div
-                  className={`tab-pane fade ${activeTab === "student" ? "show active" : ""}`}
-                  id="student"
-                  role="tabpanel"
-                  aria-labelledby="student-tab"
-                >
-                  <h4>Student Registration</h4>
-                  <form onSubmit={handleSubmit}>
-                    <div className="mb-3">
-                      <label htmlFor="name" className="form-label">Full Name</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        id="name"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label htmlFor="email" className="form-label">Email address</label>
-                      <input
-                        type="email"
-                        className="form-control"
-                        id="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label htmlFor="password" className="form-label">Password</label>
-                      <input
-                        type="password"
-                        className="form-control"
-                        id="password"
-                        name="password"
-                        value={formData.password}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label htmlFor="organization" className="form-label">Select Organization</label>
-                      <select
-                        className="form-select"
-                        id="organization"
-                        name="organization"
-                        value={formData.organization}
-                        onChange={handleInputChange}
-                        required
-                      >
-                        <option value="">Select Organization</option>
-                        {organizations.map((org, index) => (
-                          <option key={index} value={org}>
-                            {org}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <button type="submit" className="btn btn-outline-dark w-100">Register</button>
-                  </form>
-                </div>
-
-                {/* Teacher Registration Form */}
-                <div
-                  className={`tab-pane fade ${activeTab === "teacher" ? "show active" : ""}`}
-                  id="teacher"
-                  role="tabpanel"
-                  aria-labelledby="teacher-tab"
-                >
-                  <h4>Teacher Registration</h4>
-                  <form onSubmit={handleSubmit}>
-                    <div className="mb-3">
-                      <label htmlFor="name" className="form-label">Full Name</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        id="name"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label htmlFor="email" className="form-label">Email address</label>
-                      <input
-                        type="email"
-                        className="form-control"
-                        id="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label htmlFor="password" className="form-label">Password</label>
-                      <input
-                        type="password"
-                        className="form-control"
-                        id="password"
-                        name="password"
-                        value={formData.password}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label htmlFor="organization" className="form-label">Organization</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        id="organization"
-                        name="organization"
-                        value={formData.organization}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                    <button type="submit" className="btn btn-outline-dark w-100">Register</button>
-                  </form>
-                </div>
+                  </button>
+                </form>
               </div>
             </div>
+            <p className="text-center text-muted mt-3">
+              Already have an account? {" "}
+              <Link to={"/login"} className="text-primary">
+                Login
+              </Link>
+            </p>
           </div>
         </div>
       </div>
