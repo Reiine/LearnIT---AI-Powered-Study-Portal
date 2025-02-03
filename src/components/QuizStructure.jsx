@@ -1,16 +1,27 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Cookies from "js-cookie";
-import { collection, db, addDoc,doc, getDoc } from "../config/firebase-config";
-import { useNavigate } from "react-router-dom";
+import {
+  collection,
+  db,
+  addDoc,
+  doc,
+  getDoc,
+  updateDoc,
+  arrayUnion,
+} from "../config/firebase-config";
+import { useNavigate, useParams } from "react-router-dom";
+import "./css/QuizStructure.css"; // Custom CSS for additional styling
 
 const QuizStructure = ({ questions }) => {
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [showResults, setShowResults] = useState(false);
-  const [userOrganization, setUserOrganization] = useState('');
+  const [userOrganization, setUserOrganization] = useState("");
   const [title, setTitle] = useState("");
+  const [score, setScore] = useState(null);
   const role = Cookies.get("role");
   const navigate = useNavigate();
+  const { quizId } = useParams();
 
   useEffect(() => {
     const fetchUserOrganization = async () => {
@@ -22,18 +33,21 @@ const QuizStructure = ({ questions }) => {
       }
 
       try {
-        // Fetch user details from Firestore
-        const userRef = doc(db, "teachers", userId); // Assuming user is a teacher; adjust if necessary
+        const userRef = doc(
+          db,
+          role === "teacher" ? "teachers" : "students",
+          userId
+        );
         const userDoc = await getDoc(userRef);
 
         if (userDoc.exists()) {
-          setUserOrganization(userDoc.data().organization); // Assuming organization is stored here
+          setUserOrganization(userDoc.data().organization);
         } else {
           console.error("User not found.");
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
-      } 
+      }
     };
 
     fetchUserOrganization();
@@ -45,19 +59,18 @@ const QuizStructure = ({ questions }) => {
       return;
     }
 
-    // Prepare the data to be stored in the database
     const approvedQuiz = {
       title,
       questions,
-      organization: userOrganization, // Example organization, replace with actual value
+      organization: userOrganization,
+      approvedAt: new Date(),
+      attemptedBy: [],
     };
 
     try {
-      // Store the quiz data in Firebase Firestore
-      const quizzesCollection = collection(db, "quizzes"); // Get reference to 'quizzes' collection
-      await addDoc(quizzesCollection, approvedQuiz); // Add the quiz to Firestore
+      const quizzesCollection = collection(db, "quizzes");
+      await addDoc(quizzesCollection, approvedQuiz);
 
-      // Reset the state after approval
       setTitle("");
       setSelectedAnswers({});
       setShowResults(false);
@@ -70,9 +83,7 @@ const QuizStructure = ({ questions }) => {
     }
   };
 
-  // Function to handle cancel action by the teacher
   const handleCancel = () => {
-    // Reset the state to cancel the approval process
     setTitle("");
     setSelectedAnswers({});
     setShowResults(false);
@@ -88,8 +99,69 @@ const QuizStructure = ({ questions }) => {
     }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    console.log(quizId);
+
+    let correctCount = 0;
+    questions.forEach((q, index) => {
+      if (selectedAnswers[index] === q.correctAnswer) {
+        correctCount++;
+      }
+    });
+
+    const totalMarks = questions.length;
+    setScore(`${correctCount}/${totalMarks}`);
     setShowResults(true);
+
+    const userId = Cookies.get("userId");
+    if (!userId || !quizId) {
+      console.error("User ID or Quiz ID is missing.");
+      return;
+    }
+
+    try {
+      const userRef = doc(db, "students", userId);
+      const userDoc = await getDoc(userRef);
+
+      if (!userDoc.exists()) {
+        console.error("User data not found.");
+        return;
+      }
+
+      const userData = userDoc.data();
+      const quizRef = doc(db, "quizzes", quizId);
+      const quizTitle = await getDoc(quizRef);
+
+      // Update the quiz document to store attemptedBy info
+      await updateDoc(quizRef, {
+        attemptedBy: arrayUnion({
+          userId,
+          name: userData.name,
+          organization: userData.organization,
+          score: correctCount,
+          totalMarks,
+          attemptedAt: new Date(), // Store the attempt timestamp
+        }),
+      });
+
+      // Update student's document to store quizStats
+      if (quizTitle) {
+        await updateDoc(userRef, {
+          quizStats: arrayUnion({
+            quizId,
+            title:quizTitle.data().title,
+            quizTakenAt: new Date(),
+            score: `${correctCount}/${totalMarks}`,
+          }),
+        });
+      }
+
+      alert("Your score has been recorded!");
+      navigate('/')
+    } catch (error) {
+      console.error("Error updating quiz:", error);
+      alert("Error recording your score.");
+    }
   };
 
   const renderOptions = (options, questionIndex) => {
@@ -101,7 +173,7 @@ const QuizStructure = ({ questions }) => {
           name={`question-${questionIndex}`}
           value={option}
           onChange={() => handleOptionChange(questionIndex, option)}
-          disabled={role === "teacher" || showResults} // Disable for teachers
+          disabled={role === "teacher" || showResults}
         />
         <label className="form-check-label">{option}</label>
       </div>
@@ -125,66 +197,74 @@ const QuizStructure = ({ questions }) => {
   };
 
   return (
-    <div className="quiz-container container py-5">
-      <h2 className="text-center">Quiz</h2>
-      {role === "teacher" && (
-        <div className="mb-4">
-          <label htmlFor="quizTitle" className="form-label">
-            Title
-          </label>
-          <input
-            id="quizTitle"
-            type="text"
-            className="form-control"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Enter quiz title"
-          />
-        </div>
-      )}
+    <div className="quiz-structure-page">
+      <div className="quiz-container container py-5">
+        <h2 className="text-center mb-4 font-weight-bold">Quiz</h2>
+        {role === "teacher" && (
+          <div className="mb-4">
+            <label htmlFor="quizTitle" className="form-label">
+              Title
+            </label>
+            <input
+              id="quizTitle"
+              type="text"
+              className="form-control"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Enter quiz title"
+            />
+          </div>
+        )}
 
-      {questions.map((q, index) => (
-        <div
-          key={index}
-          className="quiz-question mb-4 p-4 border rounded shadow-sm"
-        >
-          <h4>{q.question}</h4>
-          <div className="options">{renderOptions(q.options, index)}</div>
-          {showResults &&
-            role === "student" &&
-            renderResult(index, q.correctAnswer)}
-
-          {role === "teacher" && (
-            <div className="mt-3">
-              <strong>Correct Answer: </strong>
-              <p>{q.correctAnswer}</p>
-            </div>
-          )}
-        </div>
-      ))}
-
-      {!showResults && role === "student" && (
-        <div className="text-center">
-          <button className="btn btn-primary" onClick={handleSubmit}>
-            Submit
-          </button>
-        </div>
-      )}
-
-      {role === "teacher" && (
-        <div className="text-center mt-4">
-          <button
-            className="btn btn-success"
-            onClick={() => handleApprove(title)}
-            disabled={!title}
+        {questions.map((q, index) => (
+          <div
+            key={index}
+            className="quiz-question mb-4 p-4 border rounded shadow-sm"
           >
-            Approve
-          </button>
-          <button className="btn btn-danger ms-2" onClick={handleCancel}>
-            Cancel
-          </button>
-        </div>
-      )}
+            <h4>{q.question}</h4>
+            <div className="options">{renderOptions(q.options, index)}</div>
+            {showResults &&
+              role === "student" &&
+              renderResult(index, q.correctAnswer)}
+
+            {role === "teacher" && (
+              <div className="mt-3">
+                <strong>Correct Answer: </strong>
+                <p>{q.correctAnswer}</p>
+              </div>
+            )}
+          </div>
+        ))}
+
+        {!showResults && role === "student" && (
+          <div className="text-center">
+            <button className="btn btn-primary" onClick={handleSubmit}>
+              Submit
+            </button>
+          </div>
+        )}
+
+        {showResults && role === "student" && (
+          <div className="text-center mt-4">
+            <h4>Your Score: {score}</h4>
+          </div>
+        )}
+
+        {role === "teacher" && (
+          <div className="text-center mt-4">
+            <button
+              className="btn btn-success"
+              onClick={handleApprove}
+              disabled={!title}
+            >
+              Approve
+            </button>
+            <button className="btn btn-danger ms-2" onClick={handleCancel}>
+              Cancel
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

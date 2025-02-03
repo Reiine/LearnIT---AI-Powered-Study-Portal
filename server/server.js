@@ -8,6 +8,14 @@ const pdfParse = require("pdf-parse");
 const axios = require("axios");
 const { PDFDocument, StandardFonts, rgb } = require("pdf-lib");
 
+// New Code
+const { RecursiveCharacterTextSplitter } = require("langchain/text_splitter");
+const { GoogleGenerativeAIEmbeddings } = require("@langchain/google-genai");
+const { HNSWLib } = require("langchain/vectorstores/hnswlib");
+const { loadQAChain } = require("langchain/chains");
+const { ChatGoogleGenerativeAI } = require("@langchain/google-genai");
+const { PromptTemplate } = require("@langchain/core/prompts");
+
 const app = express();
 app.use(express.json());
 app.use(cors());
@@ -161,6 +169,106 @@ function wrapText(text, font, fontSize, maxWidth) {
 
   return lines;
 }
+
+
+// New Code
+app.post("/process-pdfs", upload.array("pdfs"), async (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: "No PDF files uploaded" });
+    }
+
+    let rawText = "";
+    for (const file of req.files) {
+      const pdfPath = path.join(__dirname, file.path);
+      const pdfBuffer = fs.readFileSync(pdfPath);
+      const pdfData = await pdfParse(pdfBuffer);
+      rawText += pdfData.text;
+      fs.unlinkSync(pdfPath);
+    }
+
+    const textSplitter = new RecursiveCharacterTextSplitter({
+      chunkSize: 10000,
+      chunkOverlap: 1000,
+    });
+    const textChunks = await textSplitter.splitText(rawText);
+
+    const embeddings = new GoogleGenerativeAIEmbeddings({
+      modelName: "models/embedding-001",
+      apiKey:process.env.GEMINI_API_KEY
+    });
+    
+    const vectorStore = await HNSWLib.fromTexts(
+      textChunks,
+      {},
+      embeddings
+    );
+    
+    const directory = path.join(__dirname, "vector_store");
+    if (!fs.existsSync(directory)){
+      fs.mkdirSync(directory);
+    }
+    
+    await vectorStore.save(directory);
+
+    res.json({ message: "PDFs processed successfully" });
+  } catch (error) {
+    console.error("Error processing PDFs:", error);
+    res.status(500).json({ error: "Failed to process PDFs" });
+  }
+});
+
+app.post("/ask-question", async (req, res) => {
+  try {
+    const { question } = req.body;
+    if (!question) {
+      return res.status(400).json({ error: "No question provided" });
+    }
+
+    const embeddings = new GoogleGenerativeAIEmbeddings({
+      modelName: "models/embedding-001",
+      apiKey:process.env.GEMINI_API_KEY
+    });
+    
+    const directory = path.join(__dirname, "vector_store");
+    const vectorStore = await HNSWLib.load(
+      directory,
+      embeddings
+    );
+    
+    const docs = await vectorStore.similaritySearch(question, 3);
+
+    const promptTemplate = new PromptTemplate({
+      template: `Answer the question as detailed as possible from the provided context. If the answer isn't in the context, say "answer is not available in the context".\n
+      Context:\n{context}\n
+      Question: {question}\n
+      Answer:`,
+      inputVariables: ["context", "question"],
+    });
+
+    const model = new ChatGoogleGenerativeAI({
+      modelName: "gemini-pro",
+      temperature: 0.3,
+      apiKey:process.env.GEMINI_API_KEY
+    });
+
+    const chain = loadQAChain(model, {
+      type: "stuff",
+      prompt: promptTemplate,
+    });
+
+    const response = await chain.call({
+      input_documents: docs,
+      question: question,
+    });
+
+    res.json({ answer: response.text });
+  } catch (error) {
+    console.error("Error answering question:", error);
+    res.status(500).json({ error: "Failed to answer question" });
+  }
+});
+
 
 const PORT = 3001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

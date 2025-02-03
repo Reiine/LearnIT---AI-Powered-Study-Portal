@@ -16,6 +16,10 @@ import UploadNotes from "./components/UploadNotes";
 import FetchUploads from "./components/FetchUploads";
 import Quiz from "./components/Quiz";
 import TeacherMcq from "./components/TeacherMcq";
+import MyStudents from "./components/MyStudents";
+import StudentDetails from "./components/StudentDetails";
+import Profile from "./components/Profile";
+import PDFChat from "./components/PDFChat";
 
 function App() {
   const [questions, setQuestions] = useState([]);
@@ -44,24 +48,60 @@ function App() {
 
   return (
     <Router>
-      <Nav isLogin={isLogin} setIsLogin={setIsLogin} />
+      {window.location.pathname !== "/" && (
+        <Nav isLogin={isLogin} setIsLogin={setIsLogin} />
+      )}
       {isLogin ? (
         <Routes>
-          <Route path="/uploader" element={<Uploader setQuestions={setQuestions} questions={questions} />} />
-          <Route path="/quiz" element={<QuizStructure setQuestions={setQuestions} questions={questions} />} />
+          <Route
+            path="/uploader"
+            element={
+              <Uploader setQuestions={setQuestions} questions={questions} />
+            }
+          />
+          <Route
+            path="/quiz/:quizId?"
+            element={
+              <QuizStructure
+                setQuestions={setQuestions}
+                questions={questions}
+              />
+            }
+          />
           <Route path="/notes-generator" element={<NoteGenerator />} />
-          <Route path="/" element={<Dashboard isLogin={isLogin} userName={userName} />} />
-          <Route path="/login" element={<Dashboard isLogin={isLogin} userName={userName} />} />
-          <Route path="/register" element={<Dashboard isLogin={isLogin} userName={userName} />} />
-          <Route path="/teacher-mcqs" element={<TeacherMcq setQuestions={setQuestions}  />} />
+          <Route
+            path="/"
+            element={<Dashboard isLogin={isLogin} userName={userName} />}
+          />
+          <Route
+            path="/login"
+            element={<Dashboard isLogin={isLogin} userName={userName} />}
+          />
+          <Route
+            path="/register"
+            element={<Dashboard isLogin={isLogin} userName={userName} />}
+          />
+          <Route path="/pdfchat" element={<PDFChat />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/my-students/" element={<MyStudents />} />
+          <Route path="/my-students/:studentId" element={<StudentDetails />} />
+          <Route
+            path="/teacher-mcqs"
+            element={<TeacherMcq setQuestions={setQuestions} />}
+          />
           <Route path="/upload-notes" element={<UploadNotes />} />
-          <Route path="/fetch-notes" element={<FetchUploads/>} />
+          <Route path="/fetch-notes" element={<FetchUploads />} />
           <Route path="*" element={<Error />} />
         </Routes>
       ) : (
         <Routes>
           <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login setIsLogin={setIsLogin} setUserName={setUserName} />} />
+          <Route
+            path="/login"
+            element={
+              <Login setIsLogin={setIsLogin} setUserName={setUserName} />
+            }
+          />
           <Route path="/" element={<Landing />} />
           <Route path="*" element={<Error />} />
         </Routes>

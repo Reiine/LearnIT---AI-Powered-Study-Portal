@@ -49,15 +49,15 @@ const Login = ({ setIsLogin,setUserName }) => {
   
       if (role) {
         Cookies.set("role", role, { expires: 7 });
-        Cookies.set("userName", userName, { expires: 7 }); // Store userName in cookies
+        Cookies.set("userName", userName, { expires: 7 }); 
         Cookies.set("isLogin", "true", { expires: 7 });
         setIsLogin(true);
-        setUserName(userName); // Update global state in App.js
+        setUserName(userName);
   
         console.log(`Login successful as ${role} - User Name: ${userName}`);
         navigate("/");
       } else {
-        setError("User role not found.");
+        setError("User not found.");
       }
     } catch (error) {
       console.error("Login Error:", error);

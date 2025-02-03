@@ -4,7 +4,7 @@ import { collection, addDoc, getDocs, doc, setDoc } from "firebase/firestore";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./css/Register.css"; // Custom CSS for additional styling
-import { Link } from "react-router-dom";
+import { Link,useNavigate } from "react-router-dom";
 
 const Register = () => {
   const [activeTab, setActiveTab] = useState("student");
@@ -16,6 +16,7 @@ const Register = () => {
   });
   const [organizations, setOrganizations] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchOrganizations = async () => {
@@ -49,11 +50,27 @@ const Register = () => {
 
       // Store user info in Firestore
       const userType = activeTab === "student" ? "students" : "teachers";
-      await setDoc(doc(db, userType, user.uid), {
-        name: formData.name,
-        email: formData.email,
-        organization: formData.organization,
-      });
+
+      if (user?.uid) {
+        const userRef = doc(db, userType, user.uid);
+
+        const userData = {
+          name: formData.name,
+          email: formData.email,
+          organization: formData.organization,
+          role: userType, // Optional, helps in role-based logic
+        };
+
+        if (userType === "students") {
+          userData.quizStats = []; // Track attempted quizzes
+        } else {
+          userData.myStudents = []; // Store assigned students
+        }
+
+        await setDoc(userRef, userData);
+      } else {
+        console.error("User UID is missing.");
+      }
 
       // If teacher, add organization if not exists
       if (activeTab === "teacher") {
@@ -69,6 +86,7 @@ const Register = () => {
       // Clear form after submission
       setFormData({ name: "", email: "", password: "", organization: "" });
       alert("Registration successful!");
+      navigate('/login')
     } catch (error) {
       setErrorMessage(error.message.split(":")[1].trim());
       console.error("Error during registration: ", error);
@@ -230,7 +248,7 @@ const Register = () => {
               </div>
             </div>
             <p className="text-center text-muted mt-3">
-              Already have an account? {" "}
+              Already have an account?{" "}
               <Link to={"/login"} className="text-primary">
                 Login
               </Link>

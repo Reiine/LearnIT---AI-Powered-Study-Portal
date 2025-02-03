@@ -1,28 +1,34 @@
 import React from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./css/Landing.css"; // Custom CSS for additional styling
+import blue from './public/blue.png'
+import green from './public/green.png'
+import logo from './public/logo.png'
+import { Link } from "react-router-dom";
 
 const Landing = () => {
   return (
-    <div className="landing-page-container">
+    <div className="landing-page-container bg-color">
       {/* Hero Section */}
-      <div className="hero-section text-center text-white d-flex align-items-center justify-content-center">
+      <div className="hero-section  text-white d-flex align-items-center justify-content-start">
         <div className="hero-content">
-          <h1 className="display-4 font-weight-bold">Welcome to LearnIT!</h1>
-          <p className="lead">
-            Your ultimate learning platform - Collaborate, learn, and grow with
-            teachers and peers.
-          </p>
+          <h1 className="display-4 bold">LearnIT!</h1>
+          <h2 className="bold text-muted">
+            Your ultimate learning platform
+          </h2>
           <hr className="my-4 bg-white" />
-          <p>
-            Join now to access quizzes, study materials, and track your
-            progress!
+          <p className="text-muted">
+          Collaborate, learn, and grow with teachers and peers.
           </p>
-          <div className="mt-4">
-            <button className="get-started-btn">
-              Get Started
-            </button>
+          <div className="mt-4 land-btns">
+            <Link to={'/login'}>Login</Link>
+            <Link to={'/register'} >Register Here</Link>
           </div>
+        </div>
+        <div className="pics">
+          <img src={green} alt="green" className="green" />
+          <img src={logo} alt="logo" className="logo" />
+          <img src={blue} alt="blue" className="blue" />
         </div>
       </div>
 
@@ -54,11 +60,13 @@ const Landing = () => {
         </div>
 
         {/* Why Choose Us Section */}
-        <div className="container py-5 bg-light">
+        <div className="container py-5 ">
           <div className="row align-items-center justify-content-center ">
             <div className="col-md-6 order-md-2 d-flex flex-column align-items-start text-md-left">
               <div>
-                <h2 className="font-weight-bold mb-4 text-center">Why Choose LearnIT?</h2>
+                <h2 className="font-weight-bold mb-4 text-center">
+                  Why Choose LearnIT?
+                </h2>
                 <p className="text-muted text-center ">
                   LearnIT is designed to make learning interactive and engaging.
                   Our platform adapts to your needs, offering personalized

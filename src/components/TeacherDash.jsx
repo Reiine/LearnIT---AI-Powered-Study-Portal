@@ -51,6 +51,17 @@ const TeacherDash = ({ userName }) => {
               </Card.Body>
             </Card>
           </Col>
+          <Col md={6}>
+            <Card className="shadow-lg card-hover">
+              <Card.Body className="text-center">
+                <Card.Title>My Students</Card.Title>
+                <Card.Text>View your students</Card.Text>
+                <button onClick={() => navigate("/my-students")} className="cust-btn" >
+                  View
+                </button>
+              </Card.Body>
+            </Card>
+          </Col>
         </Row>
       </Container>
     </div>

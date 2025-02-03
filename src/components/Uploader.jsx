@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -7,8 +7,13 @@ import "./css/Uploader.css"; // Custom CSS for additional styling
 const Uploader = ({ questions, setQuestions }) => {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
-
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Reset questions when returning to the uploader page
+    setQuestions([]);
+    setFile(null);
+  }, []);
 
   const onDrop = useCallback((acceptedFiles) => {
     if (acceptedFiles.length > 0) {
@@ -43,6 +48,7 @@ const Uploader = ({ questions, setQuestions }) => {
       );
 
       setQuestions(response.data.questions);
+      navigate("/quiz"); // Navigate only after setting questions
     } catch (error) {
       console.error("Error generating quiz:", error);
     } finally {
@@ -66,7 +72,9 @@ const Uploader = ({ questions, setQuestions }) => {
               ) : isDragActive ? (
                 <p className="text-center">📂 Drop the file here...</p>
               ) : (
-                <p className="text-center">📁 Drag & drop a PDF file here, or click to select one</p>
+                <p className="text-center">
+                  📁 Drag & drop a PDF file here, or click to select one
+                </p>
               )}
             </div>
             <button
@@ -76,7 +84,6 @@ const Uploader = ({ questions, setQuestions }) => {
             >
               {loading ? "Generating Quiz..." : "Generate Quiz"}
             </button>
-            {questions.length > 0 && navigate("/quiz")}
           </div>
         </div>
       </div>
